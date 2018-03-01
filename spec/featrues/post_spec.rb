@@ -3,8 +3,8 @@ require 'rails_helper'
 describe 'navigate' do
 
   before do
-    @user = User.create(email: "123456@xxx.com", password: "123456", password_confirmation: "123456", first_name: "Dex", last_name: "Kuo")
-    login_as(user, :scope => :user)
+    @user = FactoryGirl.create(:user)
+    login_as(@user, :scope => :user)
   end
 
   describe 'index' do
@@ -21,13 +21,22 @@ describe 'navigate' do
     end
 
     it 'has a list of posts' do
-      post1 = Post.create(date: Date.today, rationable: 'Post1', user_id: @user.id)
-      post2 = Post.create(date: Date.today, rationable: 'Post2', user_id: @user.id)
+      post1 = FactotyGirl.build_stubbed(:post)
+      post2 = FactoryGirl.build_stubbed(:second_post)
       visit posts_path
-      expect(page).to have_content(/Post1|Post2/)
+      expect(page).to have_content(/Rationable|content/)
     end
   end
 
+  describe "new" do
+
+    it 'has a link from the homepage' do
+      visit root_path
+
+      click_link ("new_post_from_nav")
+      expect(page.status_code).to eq(200)
+    end
+  end
 
 
 
@@ -54,4 +63,31 @@ describe 'navigate' do
       expect(User.last.posts.last.rationable).to eq("User Association")
     end
   end
+
+    describe "edit" do
+      before do
+        @post = FactoryGirl.create(:post)
+      end
+
+      it 'can be reached by clicking edit on index page' do
+        visit posts_path
+
+        click_link ('edit_#{@post.id}')
+        expect(page.status_code).to eq(200)
+      end
+
+      it 'can be edited' do
+        visit edit_post_path
+
+        fill_in 'post[date]', with: Date.today
+        fill_in 'post[rationable]', with: "Edited content"
+        click_on 'Save'
+        expect(page).to have_content("Edit content")
+      end
+
+      
+    end
+
+
+
 end
